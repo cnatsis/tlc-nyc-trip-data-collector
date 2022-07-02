@@ -1,0 +1,10 @@
+version: "3"
+services:
+  app:
+    image: com.github.cnatsis/tlc-nyc-trip-data-collector:latest
+    restart: "unless-stopped"
+    build: .
+    user: ${USER_ID}
+    volumes:
+      - ./data:/usr/app/data
+      - ./tlc_nyc_data_url_list.txt:/usr/app/tlc_nyc_data_url_list.txt
