@@ -3,3 +3,4 @@ asyncio==3.4.3
 requests~=2.28.1
 selenium==4.3.0
 webdriver-manager==3.7.1
+pyarrow==8.0.0

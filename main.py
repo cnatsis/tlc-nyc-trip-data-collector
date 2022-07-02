@@ -3,6 +3,8 @@ import contextvars
 import functools
 import logging
 import os
+from os.path import isfile, join
+import pyarrow.parquet as pq
 from time import perf_counter
 from typing import List
 
@@ -20,15 +22,16 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S')
 
 TLC_URL = 'https://www1.nyc.gov/site/tlc/about/tlc-trip-record-data.page'
+DATA_DIR = 'data'
 
 
-def construct_url_list() -> List[str]:
+def construct_url_list() -> set:
     """
     This method is used to scrap all the URLs of TLC Trip Data from the web and store them to a list
 
-    :return: List of URLs that contain the parquet data files
+    :return: List of unique URLs that contain the parquet data files
     """
-    url_list = []
+    url_list = set()
 
     chrome_options = Options()
     chrome_options.add_argument("--headless")
@@ -44,7 +47,7 @@ def construct_url_list() -> List[str]:
         for a in u.find_all('a', href=True):
             href: str = a.get('href')
             if href.startswith('https://'):
-                url_list.append(a.get('href'))
+                url_list.add(href)
     driver.close()
     driver.quit()
     return url_list
@@ -53,6 +56,19 @@ def construct_url_list() -> List[str]:
 def write_urls_to_file(url_list: List[str]) -> None:
     with open('tlc_nyc_data_url_list.txt', 'w') as f:
         f.write('\n'.join(url_list))
+
+
+def clean_faulty_files() -> None:
+    """
+    Removes all faulty parquet files from the data directory
+    """
+    files = [f for f in os.listdir(DATA_DIR) if isfile(join(DATA_DIR, f))]
+    for f in files:
+        try:
+            pq.ParquetFile('{}/{}'.format(DATA_DIR, f))
+        except Exception as e:
+            logging.info("Deleting corrupted file '{}': {}".format(f, e))
+            os.remove('{}/{}'.format(DATA_DIR, f))
 
 
 async def download_file(file_url: str) -> None:
@@ -65,7 +81,7 @@ async def download_file(file_url: str) -> None:
     file_name = file_url.split('/')[-1]
 
     content = http_get(file_url)
-    with open(os.path.join(os.path.dirname(__file__), 'data', file_name), 'wb') as f:
+    with open(os.path.join(os.path.dirname(__file__), DATA_DIR, file_name), 'wb') as f:
         f.write(await content)
     logging.info("Finished downloading file '{}'".format(file_url))
 
@@ -105,9 +121,19 @@ async def to_thread(func, /, *args, **kwargs):
 
 async def main():
     start = perf_counter()
-    s3_urls = construct_url_list()
+
+    # Fetch URLs list from the web using scraper
+    s3_urls = list(construct_url_list())
+
+    # Flush URLs to file for future usage
     write_urls_to_file(s3_urls)
+
+    # Download all files asynchronously
     await download_all_files(s3_urls)
+
+    # Cleanup faulty parquet files
+    clean_faulty_files()
+
     logging.info('Total time: {}'.format(perf_counter() - start))
 
 
