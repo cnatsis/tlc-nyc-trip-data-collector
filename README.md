@@ -25,6 +25,8 @@ pip install -r requirements.txt
 python3 main.py
 ```
 
+Once the downloading of files is complete, they will be stored in the `data` directory.
+
 ### Docker
 
 In order to run the application using `Docker` & `docker-compose`, run the following script. This script produces a
@@ -33,3 +35,6 @@ Docker image named `com.github.cnatsis/tlc-nyc-trip-data-collector:latest`
 ```bash
 ./run_docker.sh
 ```
+
+**NOTE:** Running this application using ARM architecture processor is currently not supported due to Selenium
+incompatibilities.

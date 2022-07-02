@@ -7,6 +7,7 @@ from typing import List
 import aiohttp
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
@@ -27,7 +28,11 @@ def construct_url_list() -> List[str]:
     """
     url_list = []
 
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("----no-sandbox")
+
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
     driver.get(TLC_URL)
     link = driver.find_element(By.LINK_TEXT, 'Expand All')
     link.click()
