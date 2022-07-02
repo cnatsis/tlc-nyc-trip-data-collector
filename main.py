@@ -32,7 +32,7 @@ def construct_url_list() -> List[str]:
 
     chrome_options = Options()
     chrome_options.add_argument("--headless")
-    chrome_options.add_argument("----no-sandbox")
+    chrome_options.add_argument("--no-sandbox")
 
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
     driver.get(TLC_URL)
