@@ -1,4 +1,4 @@
-# Taxi and Limousine Commission (TLC) | New York city trip data collector
+# TLC New York City trip data collector
 
 * [Scope](#scope)
 * [Run](#run)
@@ -7,7 +7,8 @@
 
 ## Scope
 
-This project is used to automatically download all files that are uploaded to the TLC Trip Record Data.
+This project is used to automatically download all files that are uploaded to the Taxi and Limousine Commission (TLC)
+Trip Record Data for taxi trips in New York City.
 
 ## Run
 
