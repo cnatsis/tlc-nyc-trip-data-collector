@@ -4,6 +4,7 @@
 * [Run](#run)
     + [Manually](#manually)
     + [Docker](#docker)
++ [Versions](#versions)
 
 ## Scope
 
@@ -39,3 +40,7 @@ Docker image named `com.github.cnatsis/tlc-nyc-trip-data-collector:latest`
 
 **NOTE:** Running this application using ARM architecture processor is currently not supported due to Selenium
 incompatibilities.
+
+### Versions
+
+**Python:** 3.8

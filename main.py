@@ -1,10 +1,12 @@
 import asyncio
+import contextvars
+import functools
 import logging
 import os
 from time import perf_counter
 from typing import List
 
-import aiohttp
+import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -62,13 +64,9 @@ async def download_file(file_url: str) -> None:
     logging.info("Downloading file '{}'".format(file_url))
     file_name = file_url.split('/')[-1]
 
-    async with aiohttp.ClientSession() as session:
-        try:
-            async with session.get(file_url) as r:
-                with open(os.path.join(os.path.dirname(__file__), 'data', file_name), 'wb') as f:
-                    f.write(await r.read())
-        except Exception as e:
-            logging.error('Caught exception {} while downloading file {}'.format(e, file_url))
+    content = http_get(file_url)
+    with open(os.path.join(os.path.dirname(__file__), 'data', file_name), 'wb') as f:
+        f.write(await content)
     logging.info("Finished downloading file '{}'".format(file_url))
 
 
@@ -79,6 +77,30 @@ async def download_all_files(url_list: List[str]) -> None:
     :param url_list: URLs to download files from
     """
     await asyncio.gather(*[download_file(f) for f in url_list])
+
+
+def http_get_sync(url: str) -> bytes:
+    """
+    Synchronous call to get the content of a URL
+    :param url: URL address
+    :return: URL content
+    """
+    response = requests.get(url)
+    return response.content
+
+
+async def http_get(url: str):
+    return await to_thread(http_get_sync, url)
+
+
+async def to_thread(func, /, *args, **kwargs):
+    """
+    Asyncio's to_thread implementation on Python 3.9
+    """
+    loop = asyncio.get_running_loop()
+    ctx = contextvars.copy_context()
+    func_call = functools.partial(ctx.run, func, *args, **kwargs)
+    return await loop.run_in_executor(None, func_call)
 
 
 async def main():
