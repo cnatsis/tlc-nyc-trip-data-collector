@@ -53,9 +53,15 @@ def construct_url_list() -> set:
     return url_list
 
 
-def write_urls_to_file(url_list: List[str]) -> None:
-    with open('tlc_nyc_data_url_list.txt', 'w') as f:
-        f.write('\n'.join(url_list))
+def write_to_file(file_name: str, data: List[str]) -> None:
+    """
+    Writes data to file
+
+    :param file_name: file name
+    :param data: data to write
+    """
+    with open(file_name, 'w') as f:
+        f.write('\n'.join(data))
 
 
 def clean_faulty_files() -> None:
@@ -126,7 +132,7 @@ async def main():
     s3_urls = list(construct_url_list())
 
     # Flush URLs to file for future usage
-    write_urls_to_file(s3_urls)
+    write_to_file('tlc_nyc_data_url_list.txt', s3_urls)
 
     # Download all files asynchronously
     await download_all_files(s3_urls)
